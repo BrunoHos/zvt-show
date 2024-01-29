@@ -15,11 +15,11 @@ function getBit(number, bitPosition) {
 var zvtCommands = {
     '0101': { 'bez': 'RFU' },
     '0401': { 'bez': 'Set Date and Time' },
-    '040d': { 'bez': 'Input-Request', 'bmpstart': 6 },
-    '040e': { 'bez': 'Menu-Request', 'bmpstart': 6 },
+    '040d': { 'bez': 'Input-Request' },
+    '040e': { 'bez': 'Menu-Request' },
 
-    '040f': { 'bez': 'StatusInformation', 'bmpstart': 6 },
-    '04ff': { 'bez': 'IntermediateStatusInformation', 'bmpstart': 8 },
+    '040f': { 'bez': 'StatusInformation'},
+    '04ff': { 'bez': 'IntermediateStatusInformation' },
 
     //[<password>[03<service-byte>][06<TLV-container>]]
     '0501': { 'bez': 'Status-Enquiry' },
@@ -27,7 +27,7 @@ var zvtCommands = {
 
 
     '0600': { 'bez': 'Registration' },
-    '0601': { 'bez': 'Authorization', 'bmpstart': 6 },
+    '0601': { 'bez': 'Authorization'},
     '0602': { 'bez': 'LogOff' },
     '0603': { 'bez': 'AccountBalanceRequest' },
     '0604': { 'bez': 'ActivateCard' },
@@ -37,7 +37,7 @@ var zvtCommands = {
     '060a': { 'bez': 'Tax Free' },
     '060b': { 'bez': 'RFU' },
     '060c': { 'bez': 'Book Tip' },
-    '060f': { 'bez': 'Completion', 'bmpstart': 6 },
+    '060f': { 'bez': 'Completion'},
     '0610': { 'bez': 'Send Turnover Totals' },
     '0611': { 'bez': 'RFU' },
     '0612': { 'bez': 'Print Turnover Receipts' },
@@ -81,9 +81,9 @@ var zvtCommands = {
     '06c5': { 'bez': 'Close Card Session' },
     '06c6': { 'bez': 'Send APDUs' },
     '06ce': { 'bez': 'RFU' },
-    '06d0': { 'bez': 'Menu selection with graphic display', 'bmpstart': 6 },
-    '06d1': { 'bez': 'Print Line on PT', 'bmpstart': 6 },
-    '06d3': { 'bez': 'PrintTextBloc', 'bmpstart': 6 },
+    '06d0': { 'bez': 'Menu selection with graphic display' },
+    '06d1': { 'bez': 'Print Line on PT'},
+    '06d3': { 'bez': 'PrintTextBloc'},
     '06d4': { 'bez': 'RUF' },
     '06d8': { 'bez': 'Dial-Up' },
     '06d9': { 'bez': 'Transmit Data via Dial-Up' },
@@ -94,11 +94,11 @@ var zvtCommands = {
     '06e1': { 'bez': 'Display Text with Function-Key Input' },
     '06e2': { 'bez': 'Display Text with Numerical Input' },
     '06e3': { 'bez': 'PIN-Verification for Customer-Card' },
-    '06e4': { 'bez': 'Blocked-List Query to ECR', 'bmpstart': 6 },
-    '06e5': { 'bez': 'MAC calculation', 'bmpstart': 6 },
-    '06e6': { 'bez': 'Card Poll with Authorization', 'bmpstart': 6 },
+    '06e4': { 'bez': 'Blocked-List Query to ECR'},
+    '06e5': { 'bez': 'MAC calculation'},
+    '06e6': { 'bez': 'Card Poll with Authorization'},
     '06e7': { 'bez': 'Display Text with Numerical Input with DUKPT Encryption' },
-    '06f0': { 'bez': 'Display Image', 'bmpstart': 6 },
+    '06f0': { 'bez': 'Display Image' },
 
     '0801': { 'bez': 'Activate Service-Mode' },
     //0802 <protocol-type 1 byte>
@@ -259,7 +259,7 @@ var tlvStruct = {
     '1e': { 'bez': 'start-position' },
     '40': { 'bez': 'EMV-config-parameter' },
     '41': { 'bez': 'ZVT card-type-ID' },
-    '42': { 'bez': 'name of the application' },
+    '42': { 'bez': 'name of the application', 'format': 'ASCII'  },
     '43': { 'bez': 'application-ID' },
     '44': { 'bez': 'application preferred name' },
     '45': { 'bez': 'receipt-parameter' },
@@ -433,8 +433,8 @@ var tlvStruct = {
     '21': { 'bez': 'list of permitted goods-groups' },
     '22': { 'bez': 'list of prohibited goods-groups' },
     '23': { 'bez': 'list of open pre-authorisations' },
-    '24': { 'bez': 'display-texts' },
-    '25': { 'bez': 'print-texts' },
+    '24': { 'bez': 'display-texts', 'format': 'ASCII' },
+    '25': { 'bez': 'print-texts', 'format': 'ASCII' },
     '26': { 'bez': 'list of permitted ZVT-Commands' },
     '27': { 'bez': 'list of supported character-sets' },
     '28': { 'bez': 'list of supported languages' },
@@ -819,7 +819,7 @@ function getZvtMessage(meldung) {
                 zvtCommands[cmd]['bmpstart'] = 6;
             }
 
-            
+
         zvtMessage['msglen'] = meldung.length;
         let lengthValue = parseInt(meldung.substr(4, 2),16);
         if (lengthValue ==255){
@@ -850,6 +850,7 @@ function getZvtMessage(meldung) {
             let istatus = meldung.substr(6, 2);
             zvtMessage['status'] = {};
             zvtMessage['status']['code'] = istatus;
+            zvtCommands[cmd]['bmpstart'] += 2;
             if (istatus in istatusBez) {
                 zvtMessage['status']['bez'] = istatusBez[istatus]['bez'];
                 if (istatusBez[istatus]['error']) {
@@ -858,7 +859,7 @@ function getZvtMessage(meldung) {
             }
             if (meldung.length > 10) {
                 zvtMessage['timeout'] = meldung.substr(8, 2);
-                zvtCommands[cmd]['bmpstart'] += 4;
+                zvtCommands[cmd]['bmpstart'] += 2;
             }
         }
 
