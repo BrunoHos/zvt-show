@@ -18,7 +18,7 @@ var zvtCommands = {
     '040d': { 'bez': 'Input-Request' },
     '040e': { 'bez': 'Menu-Request' },
 
-    '040f': { 'bez': 'StatusInformation'},
+    '040f': { 'bez': 'StatusInformation' },
     '04ff': { 'bez': 'IntermediateStatusInformation' },
 
     //[<password>[03<service-byte>][06<TLV-container>]]
@@ -27,17 +27,17 @@ var zvtCommands = {
 
 
     '0600': { 'bez': 'Registration' },
-    '0601': { 'bez': 'Authorization'},
+    '0601': { 'bez': 'Authorization' },
     '0602': { 'bez': 'LogOff' },
     '0603': { 'bez': 'AccountBalanceRequest' },
     '0604': { 'bez': 'ActivateCard' },
     '0605': { 'bez': 'Procurement' },
     //<prepaid-card-ID 2 byte, BCD> <payment-mode 1 byte> 04<amount>
-    '0609': { 'bez': 'Top-Up Prepaid-Cards', 'bmpstart': 12 },
+    '0609': { 'bez': 'Top-Up Prepaid-Cards', 'bmpstartDefault': 12 },
     '060a': { 'bez': 'Tax Free' },
     '060b': { 'bez': 'RFU' },
     '060c': { 'bez': 'Book Tip' },
-    '060f': { 'bez': 'Completion'},
+    '060f': { 'bez': 'Completion' },
     '0610': { 'bez': 'Send Turnover Totals' },
     '0611': { 'bez': 'RFU' },
     '0612': { 'bez': 'Print Turnover Receipts' },
@@ -82,8 +82,8 @@ var zvtCommands = {
     '06c6': { 'bez': 'Send APDUs' },
     '06ce': { 'bez': 'RFU' },
     '06d0': { 'bez': 'Menu selection with graphic display' },
-    '06d1': { 'bez': 'Print Line on PT'},
-    '06d3': { 'bez': 'PrintTextBloc'},
+    '06d1': { 'bez': 'Print Line on PT' },
+    '06d3': { 'bez': 'PrintTextBloc' },
     '06d4': { 'bez': 'RUF' },
     '06d8': { 'bez': 'Dial-Up' },
     '06d9': { 'bez': 'Transmit Data via Dial-Up' },
@@ -94,9 +94,9 @@ var zvtCommands = {
     '06e1': { 'bez': 'Display Text with Function-Key Input' },
     '06e2': { 'bez': 'Display Text with Numerical Input' },
     '06e3': { 'bez': 'PIN-Verification for Customer-Card' },
-    '06e4': { 'bez': 'Blocked-List Query to ECR'},
-    '06e5': { 'bez': 'MAC calculation'},
-    '06e6': { 'bez': 'Card Poll with Authorization'},
+    '06e4': { 'bez': 'Blocked-List Query to ECR' },
+    '06e5': { 'bez': 'MAC calculation' },
+    '06e6': { 'bez': 'Card Poll with Authorization' },
     '06e7': { 'bez': 'Display Text with Numerical Input with DUKPT Encryption' },
     '06f0': { 'bez': 'Display Image' },
 
@@ -122,7 +122,7 @@ var zvtCommands = {
 
     '0fca': { 'bez': 'ChipActivator' },
 
-    '8000': { 'bez': 'Ack', 'bmpstart': 6 },
+    '8000': { 'bez': 'Ack', 'bmpstartDefault': 6 },
     '8400': { 'bez': 'Ack' },
     //84xx NAK
     '8483': { 'bez': 'NAK unknown bitmaps' },
@@ -211,15 +211,70 @@ var bmpStruct = {
 }
 
 
-
+var zvtCardType = {
+    1: 'DouglasCard',
+    5: 'girocard',
+    6: 'Mastercard',
+    8: 'American Express',
+    10: 'Visa',
+    11: 'VISA electron',
+    12: 'Diners',
+    13: 'V PAY',
+    14: 'JCB',
+    15: 'REKA Card',
+    46: 'Maestro'
+}
 var errorMessage = {
     //'00': 'no error',
+    //01-63 errorcodes from network- operator system/authorisation-system
     '64': 'card not readable',
     '65': 'card-data not present',
     '66': 'processing-error',
     '67': 'function not permitted for ec- and Maestro-cards',
     '68': 'function not permitted for credit- and tank-cards',
-    '6c': 'abort via timeout or abort-key'
+    '6a': 'turnover-file full',
+    '6b': 'function deactivated (PT not registered)',
+    '6c': 'abort via timeout or abort-key',
+    '6e': 'card in blocked-list',
+    '6f': 'wrong currency',
+    '71': 'credit not sufficient (chip-card)',
+    '72': 'chip error',
+    '73': 'card-data incorrect (e.g. country-key check, checksum-error)',
+    '74': 'DUKPT engine exhausted',
+    '75': 'text not authentic',
+    '76': 'PAN not in white list',
+    '77': 'end-of-day batch not possible',
+    '78': 'card expired',
+    '79': 'card not yet valid',
+    '7a': 'card unknown',
+    '7b': 'fallback to magnetic stripe not possible',
+    '7c': 'fallback to magnetic stripe not possible',
+    '7d': 'communication error',
+    '7e': 'fallback to magnetic stripe not possible',
+    '83': 'function not possible',
+    '85': 'key missing',
+    '89': 'PIN-pad defective',
+    '9a': 'ZVT protocol error',
+    '9b': 'error from dial-up/communication fault',
+    '9c': 'please wait',
+    'a0': 'receiver not ready',
+
+    'f0': 'open end-of-day batch present',
+    'f1': 'ec-cash/Maestro offline error',
+    'f5': 'OPT-error',
+    'f6': 'OPT-data not available (= OPT personalisation required)',
+    'fa': 'error transmitting offline-transactions (clearing error)',
+    'fb': 'turnover data-set defective',
+    'fc': 'necessary device not present or defective',
+    'fd': 'baudrate not supported',
+    'fe': 'register unknown',
+    'ff': 'system error'
+
+
+
+
+
+
 }
 
 
@@ -258,8 +313,8 @@ var tlvStruct = {
     '1d': { 'bez': 'file-ID' },
     '1e': { 'bez': 'start-position' },
     '40': { 'bez': 'EMV-config-parameter' },
-    '41': { 'bez': 'ZVT card-type-ID' },
-    '42': { 'bez': 'name of the application', 'format': 'ASCII'  },
+    '41': { 'bez': 'ZVT card-type-ID', format: 'zvtCardType' },
+    '42': { 'bez': 'name of the application', 'format': 'ASCII' },
     '43': { 'bez': 'application-ID' },
     '44': { 'bez': 'application preferred name' },
     '45': { 'bez': 'receipt-parameter' },
@@ -307,7 +362,7 @@ var tlvStruct = {
     '1f14': { 'bez': 'card identification item' },
     '1f15': { 'bez': 'card reading control' },
     '1f16': { 'bez': 'extended error code' },
-    '1f17': { 'bez': 'extended error text' },
+    '1f17': { 'bez': 'extended error text', 'format': 'ASCII' },
     '1f18': { 'bez': 'card notification control' },
     '1f19': { 'bez': 'card acceptance' },
     '1f1a': { 'bez': 'PAN for card acceptance matching' },
@@ -348,8 +403,8 @@ var tlvStruct = {
     '1f3d': { 'bez': 'Alphanumeric data' },
     '1f3e': { 'bez': 'Encrypted cardholder information' },
     '1f3f': { 'bez': 'Remaining balance' },
-    '1f40': { 'bez': 'Device name' },
-    '1f41': { 'bez': 'Software version' },
+    '1f40': { 'bez': 'Device name', 'format': 'ASCII' },
+    '1f41': { 'bez': 'Software version', 'format': 'ASCII' },
     '1f42': { 'bez': 'Serial number' },
     '1f43': { 'bez': 'Device state' },
     '1f44': { 'bez': 'Terminal identifier' },
@@ -360,7 +415,7 @@ var tlvStruct = {
     '1f49': { 'bez': 'reserved' },
     '1f4a': { 'bez': 'reserved' },
     '1f4b': { 'bez': 'reserved' },
-    '1f4c': { 'bez': 'Card type' },
+    '1f4c': { 'bez': 'Card type', format: 'Card_type' },
     '1f4d': { 'bez': 'Card subtype' },
     '1f4e': { 'bez': 'reserved' },
     '1f4f': { 'bez': 'MIFARE ATQA' },
@@ -616,16 +671,38 @@ function getTLVBmpInfo(meldung, tlvStart) {
 
 
             if ('format' in tagInfo) {
+                let val = tlv[tag]['val'];
                 if (tagInfo['format'] == 'ASCII') {
-                    tlv[tag]['format'] =tagInfo['format'];
-                    let val = tlv[tag]['val'];
+                    tlv[tag]['format'] = tagInfo['format'];
+
                     var str = '';
                     for (var i = 0; i < val.length; i += 2) {
                         str += String.fromCharCode(parseInt(val.substr(i, 2), 16));
                     }
                     tlv[tag]['val'] = str;
+
+                } else if (tagInfo['format'] == 'zvtCardType') {
+                    let valNum = parseInt(val, 16);
+                    console.error("val:" + val + " valNum:" + valNum);
+                    if (valNum in zvtCardType) {
+                        tlv[tag]['valBez'] = zvtCardType[valNum];
+                    }
+                } else if (tagInfo['format'] == 'Card_type') {
+                    switch (val) {
+                        case "00":
+                            tlv[tag]['valBez'] = " ISO 7816-4";
+                            break;
+                        case "01":
+                            tlv[tag]['valBez'] = " MIFARE";
+                            break;
+                        case "02":
+                            tlv[tag]['valBez'] = " FeliCa";
+                            break;
+                    }
                 }
             }
+
+
 
 
 
@@ -645,6 +722,7 @@ function getTLVBmpInfo(meldung, tlvStart) {
 }
 
 function getZvtBmpInfo(meldung, start) {
+    console.info('getZvtBmpInfo(' + meldung + ', ' + start + ')');
     let bmps = {};
     let bmpOk = true;
     while (bmpOk) {
@@ -658,6 +736,9 @@ function getZvtBmpInfo(meldung, start) {
         console.log("bmp: " + bmp);
         bmps[bmp] = {};
         if (bmp in bmpStruct) {
+            if (bmp == "00") {
+                console.error('BMP 00 ????');
+            }
             bmps[bmp]['bez'] = bmpStruct[bmp]['bez'];
             let bmpleng = bmpStruct[bmp]['leng'];
             bmps[bmp]['format'] = bmpStruct[bmp]['format'];
@@ -760,6 +841,7 @@ function getZvtBmpInfo(meldung, start) {
 
 function getZvtMessage(meldung) {
     meldung = meldung.toLowerCase();
+    console.info('getZvtMessage(' + meldung + ')');
     var istatusBez = {
         '02': { 'bez': 'Please watch PIN - Pad' },
         '03': { 'bez': 'Not accepted', 'error': true },
@@ -815,17 +897,20 @@ function getZvtMessage(meldung) {
         zvtMessage['command'] = zvtCommands[cmd]['bez'];
 
         if (zvtCommands[cmd])
-            if (!('bmpstart' in zvtCommands[cmd])) {
+            if (!('bmpstartDefault' in zvtCommands[cmd])) {
                 zvtCommands[cmd]['bmpstart'] = 6;
+            } else {
+                console.warn('getZvtMessage bmpstartDefault is set :' + zvtCommands[cmd]['bmpstartDefault']);
+                zvtCommands[cmd]['bmpstart'] = zvtCommands[cmd]['bmpstartDefault'];
             }
 
 
         zvtMessage['msglen'] = meldung.length;
-        let lengthValue = parseInt(meldung.substr(4, 2),16);
-        if (lengthValue ==255){
+        let lengthValue = parseInt(meldung.substr(4, 2), 16);
+        if (lengthValue == 255) {
             //Erweitertes Längenfeld
             zvtCommands[cmd]['bmpstart'] += 4;
-            lengthValue = parseInt(meldung.substr(6, 4),16);
+            lengthValue = parseInt(meldung.substr(6, 4), 16);
         }
         zvtMessage['length'] = lengthValue;
 
@@ -843,25 +928,45 @@ function getZvtMessage(meldung) {
                 zvtCommands[cmd]['bmpstart'] += 12;
             }
 
-
-
-        } else if (cmd == '04ff') {
-            //IntermediateStatusInformationformation
-            let istatus = meldung.substr(6, 2);
-            zvtMessage['status'] = {};
-            zvtMessage['status']['code'] = istatus;
-            zvtCommands[cmd]['bmpstart'] += 2;
-            if (istatus in istatusBez) {
-                zvtMessage['status']['bez'] = istatusBez[istatus]['bez'];
-                if (istatusBez[istatus]['error']) {
-                    zvtMessage['error'] = istatusBez[istatus]['bez'];
+        } else
+            if (cmd == '0650') {
+                // 'End-of-Day'
+                if (meldung.length > 11) {
+                    zvtMessage['password'] = meldung.substr(6, 6);
+                    zvtCommands[cmd]['bmpstart'] += 6;
                 }
-            }
-            if (meldung.length > 10) {
-                zvtMessage['timeout'] = meldung.substr(8, 2);
-                zvtCommands[cmd]['bmpstart'] += 2;
-            }
-        }
+
+            } else
+
+                if (cmd == '061e') {
+                    //Abort
+
+                    let resultcode = meldung.substr(6, 2);
+                    zvtCommands[cmd]['bmpstart'] += 2;
+                    zvtMessage['result'] = {};
+                    zvtMessage['result']['code'] = istatus;
+                    if (resultcode in errorMessage) {
+                        zvtMessage['result']['bez'] = errorMessage[resultcode];
+                    }
+
+
+                } else if (cmd == '04ff') {
+                    //IntermediateStatusInformationformation
+                    let istatus = meldung.substr(6, 2);
+                    zvtMessage['status'] = {};
+                    zvtMessage['status']['code'] = istatus;
+                    zvtCommands[cmd]['bmpstart'] += 2;
+                    if (istatus in istatusBez) {
+                        zvtMessage['status']['bez'] = istatusBez[istatus]['bez'];
+                        if (istatusBez[istatus]['error']) {
+                            zvtMessage['error'] = istatusBez[istatus]['bez'];
+                        }
+                    }
+                    if (meldung.length > 10) {
+                        zvtMessage['timeout'] = meldung.substr(8, 2);
+                        zvtCommands[cmd]['bmpstart'] += 2;
+                    }
+                }
 
     }
 
