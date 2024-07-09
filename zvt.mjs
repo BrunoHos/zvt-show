@@ -840,7 +840,7 @@ function getZvtBmpInfo(meldung, start) {
 }
 
 function getZvtMessage(meldung) {
-    meldung = meldung.toLowerCase();
+    meldung = meldung.toLowerCase().replace(/\s/g, '');
     console.info('getZvtMessage(' + meldung + ')');
     var istatusBez = {
         '02': { 'bez': 'Please watch PIN - Pad' },
@@ -944,7 +944,7 @@ function getZvtMessage(meldung) {
                     let resultcode = meldung.substr(6, 2);
                     zvtCommands[cmd]['bmpstart'] += 2;
                     zvtMessage['result'] = {};
-                    zvtMessage['result']['code'] = istatus;
+                    zvtMessage['result']['code'] = resultcode;
                     if (resultcode in errorMessage) {
                         zvtMessage['result']['bez'] = errorMessage[resultcode];
                     }
