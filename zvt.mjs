@@ -567,32 +567,46 @@ function getTlvLength(meldung, tlvStart) {
 }
 
 function getTlvTag(meldung, tlvStart) {
-    let tlvTagInfo = {};
-    //Defautvalue (Error)
-    tlvTagInfo['tagNr'] = 0;
-    tlvTagInfo['bez'] = 'unbekannt';
+    let tlvTagInfo = {
+        tagNr: 0,
+        bez: 'unbekannt',
+        len: 0
+    };
 
+    // Lese erstes Tag-Byte
     let tag = meldung.substr(tlvStart, 2);
+    let firstByte = parseInt(tag, 16);
     tlvStart += 2;
-    tlvTagInfo['len'] = 2;
-    let tagNr = parseInt(tag, 16);
+    tlvTagInfo.len = 2;
 
-    // die letzen 5 Bit sind gesetzt
-    let tagNumberInNextByte = ((tagNr & 31) == 31);
-    if (tagNumberInNextByte) {
-        console.info('tagNumberInNextByte');
-        tag += meldung.substr(tlvStart, 2);
-        tlvStart += 2;
-        tlvTagInfo['len'] = 4;
+    let tagNr = firstByte;
 
-        tagNr = parseInt(tag, 16);
-        let notLastByte = getBit(tagNr, 7);
-        if (notLastByte) {
-            console.error('notLastByte not suportet');
+    // Prüfen, ob es sich um einen mehrteiligen Tag handelt (Low 5 Bits = 0x1F)
+    if ((firstByte & 0x1F) === 0x1F) {
+        // Mehrteiliger Tag – lese solange weiter, bis ein Byte mit MSB = 0 gefunden wird
+        while (true) {
+            let nextByteHex = meldung.substr(tlvStart, 2);
+            if (!nextByteHex) {
+                throw new Error("Ungültiger TLV-Tag: Unerwartetes Ende bei mehrteiliger Tag-Verarbeitung");
+            }
+
+            let nextByte = parseInt(nextByteHex, 16);
+            tag += nextByteHex;
+            tlvStart += 2;
+            tlvTagInfo.len += 2;
+
+            // Füge den nächsten Byte-Wert in die Tag-Nummer ein (Linksverschiebung um 8 Bit)
+            tagNr = (tagNr << 8) | nextByte;
+
+            // Abbruch, wenn MSB (Bit 8) = 0 (letztes Byte des Tags)
+            if ((nextByte & 0x80) === 0) {
+                break;
+            }
         }
     }
 
-    let constructedDataObject = getBit(tagNr, 5);
+    // Prüfe, ob das Datenobjekt konstruiert ist (Bit 6 = 1)
+    const constructedDataObject = (firstByte & 0x20) !== 0;
     tlvTagInfo['tag'] = tag;
     tlvTagInfo['tagNr'] = tagNr;
     tlvTagInfo['constructedDataObject'] = constructedDataObject;
@@ -604,7 +618,7 @@ function getTlvTag(meldung, tlvStart) {
         }
     }
 
-    // console.log('getTlvTag tag ' + tag + ' tagNr:' + tagNr + ' tagNumberInNextByte:' + tagNumberInNextByte + ' Bits: ' + tagNr.toString(2) + ' tlvTagInfo: ' + JSON.stringify(tlvTagInfo));
+//    console.log('getTlvTag tag ' + tag + ' tagNr:' + tagNr + ' Bits: ' + tagNr.toString(2) + ' tlvTagInfo: ' + JSON.stringify(tlvTagInfo));
 
     return tlvTagInfo;
 }
