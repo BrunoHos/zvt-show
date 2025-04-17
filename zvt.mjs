@@ -73,7 +73,7 @@ var zvtCommands = {
     '0693': { 'bez': 'Initialisation' },
     '0695': { 'bez': 'Change Password' },
     '06b0': { 'bez': 'Abort' },
-    '06c0': { 'bez': 'Read Card' },
+    '06c0': { 'bez': 'Read Card', 'bmpstartDefault': 8 },
     '06c1': { 'bez': 'reserved' },
     '06c2': { 'bez': 'reserved' },
     '06c3': { 'bez': 'reserved' },
@@ -99,6 +99,7 @@ var zvtCommands = {
     '06e6': { 'bez': 'Card Poll with Authorization' },
     '06e7': { 'bez': 'Display Text with Numerical Input with DUKPT Encryption' },
     '06f0': { 'bez': 'Display Image' },
+    '06f1': { 'bez': 'Display Image with Function-Key Input' },
 
     '0801': { 'bez': 'Activate Service-Mode' },
     //0802 <protocol-type 1 byte>
@@ -279,7 +280,7 @@ var errorMessage = {
 
 
 
-// ECR-Interface ZVT-Protocol Revision 13.11, Date 20.07.2023
+// ECR-Interface ZVT-Protocol Revision 13.13, Date 14.03.2025
 // Kapitel 9.4.1 Overview of tags used
 var tlvStruct = {
     '01': { 'bez': 'reversal-ID' },
@@ -478,6 +479,12 @@ var tlvStruct = {
     '1f8006': { 'bez': 'ALIPAY_TRADE_ID' },
     '1f8007': { 'bez': 'Online Card Hash' },
     '1f8008': { 'bez': 'Online card reference' },
+    '1f8009': { 'bez': 'HID PACS' },
+    '1f800a': { 'bez': 'Image data persistence specifier' },
+    '1f800b': { 'bez': 'Accessibillity mode on/off' },
+    '1f800c': { 'bez': 'Accessibillity mode selection' },
+    '1f800d': { 'bez': 'Color mode' },
+    '1f800e': { 'bez': 'Audio volume' },
 
     'ff01': { 'bez': 'Coupon data' },
     'ff02': { 'bez': 'Loyalty data' },
