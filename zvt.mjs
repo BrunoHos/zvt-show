@@ -841,6 +841,32 @@ function getZvtBmpInfo(meldung, start) {
 
 function getZvtMessage(meldung) {
     meldung = meldung.toLowerCase().replace(/\s/g, '');
+
+    if (meldung.startsWith("1002")) {
+        let result = "";
+        // Remove "1002" from the beginning
+        meldung = meldung.slice(4);
+
+        // Cut off everything from the first occurrence of "1003" (including it)
+        const cutIndex = meldung.indexOf("1003");
+        if (cutIndex !== -1) {
+            meldung = meldung.slice(0, cutIndex);
+        }
+
+        // Replace "1010" with "10" at even positions
+        let i = 0;
+        while (i < meldung.length) {
+            if (i % 2 === 0 && meldung.slice(i, i + 4) === "1010") {
+                result += "10";
+                i += 4;
+            } else {
+                result += meldung[i];
+                i += 1;
+            }
+        }
+        meldung = result;
+    }
+
     console.info('getZvtMessage(' + meldung + ')');
     var istatusBez = {
         '02': { 'bez': 'Please watch PIN - Pad' },
