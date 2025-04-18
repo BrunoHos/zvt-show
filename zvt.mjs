@@ -73,7 +73,7 @@ var zvtCommands = {
     '0693': { 'bez': 'Initialisation' },
     '0695': { 'bez': 'Change Password' },
     '06b0': { 'bez': 'Abort' },
-    '06c0': { 'bez': 'Read Card' },
+    '06c0': { 'bez': 'Read Card', 'bmpstartDefault': 8 },
     '06c1': { 'bez': 'reserved' },
     '06c2': { 'bez': 'reserved' },
     '06c3': { 'bez': 'reserved' },
@@ -99,6 +99,7 @@ var zvtCommands = {
     '06e6': { 'bez': 'Card Poll with Authorization' },
     '06e7': { 'bez': 'Display Text with Numerical Input with DUKPT Encryption' },
     '06f0': { 'bez': 'Display Image' },
+    '06f1': { 'bez': 'Display Image with Function-Key Input' },
 
     '0801': { 'bez': 'Activate Service-Mode' },
     //0802 <protocol-type 1 byte>
@@ -279,7 +280,7 @@ var errorMessage = {
 
 
 
-// ECR-Interface ZVT-Protocol Revision 13.11, Date 20.07.2023
+// ECR-Interface ZVT-Protocol Revision 13.13, Date 14.03.2025
 // Kapitel 9.4.1 Overview of tags used
 var tlvStruct = {
     '01': { 'bez': 'reversal-ID' },
@@ -478,6 +479,12 @@ var tlvStruct = {
     '1f8006': { 'bez': 'ALIPAY_TRADE_ID' },
     '1f8007': { 'bez': 'Online Card Hash' },
     '1f8008': { 'bez': 'Online card reference' },
+    '1f8009': { 'bez': 'HID PACS' },
+    '1f800a': { 'bez': 'Image data persistence specifier' },
+    '1f800b': { 'bez': 'Accessibillity mode on/off' },
+    '1f800c': { 'bez': 'Accessibillity mode selection' },
+    '1f800d': { 'bez': 'Color mode' },
+    '1f800e': { 'bez': 'Audio volume' },
 
     'ff01': { 'bez': 'Coupon data' },
     'ff02': { 'bez': 'Loyalty data' },
@@ -567,32 +574,46 @@ function getTlvLength(meldung, tlvStart) {
 }
 
 function getTlvTag(meldung, tlvStart) {
-    let tlvTagInfo = {};
-    //Defautvalue (Error)
-    tlvTagInfo['tagNr'] = 0;
-    tlvTagInfo['bez'] = 'unbekannt';
+    let tlvTagInfo = {
+        tagNr: 0,
+        bez: 'unbekannt',
+        len: 0
+    };
 
+    // Lese erstes Tag-Byte
     let tag = meldung.substr(tlvStart, 2);
+    let firstByte = parseInt(tag, 16);
     tlvStart += 2;
-    tlvTagInfo['len'] = 2;
-    let tagNr = parseInt(tag, 16);
+    tlvTagInfo.len = 2;
 
-    // die letzen 5 Bit sind gesetzt
-    let tagNumberInNextByte = ((tagNr & 31) == 31);
-    if (tagNumberInNextByte) {
-        console.info('tagNumberInNextByte');
-        tag += meldung.substr(tlvStart, 2);
-        tlvStart += 2;
-        tlvTagInfo['len'] = 4;
+    let tagNr = firstByte;
 
-        tagNr = parseInt(tag, 16);
-        let notLastByte = getBit(tagNr, 7);
-        if (notLastByte) {
-            console.error('notLastByte not suportet');
+    // Prüfen, ob es sich um einen mehrteiligen Tag handelt (Low 5 Bits = 0x1F)
+    if ((firstByte & 0x1F) === 0x1F) {
+        // Mehrteiliger Tag – lese solange weiter, bis ein Byte mit MSB = 0 gefunden wird
+        while (true) {
+            let nextByteHex = meldung.substr(tlvStart, 2);
+            if (!nextByteHex) {
+                throw new Error("Ungültiger TLV-Tag: Unerwartetes Ende bei mehrteiliger Tag-Verarbeitung");
+            }
+
+            let nextByte = parseInt(nextByteHex, 16);
+            tag += nextByteHex;
+            tlvStart += 2;
+            tlvTagInfo.len += 2;
+
+            // Füge den nächsten Byte-Wert in die Tag-Nummer ein (Linksverschiebung um 8 Bit)
+            tagNr = (tagNr << 8) | nextByte;
+
+            // Abbruch, wenn MSB (Bit 8) = 0 (letztes Byte des Tags)
+            if ((nextByte & 0x80) === 0) {
+                break;
+            }
         }
     }
 
-    let constructedDataObject = getBit(tagNr, 5);
+    // Prüfe, ob das Datenobjekt konstruiert ist (Bit 6 = 1)
+    const constructedDataObject = (firstByte & 0x20) !== 0;
     tlvTagInfo['tag'] = tag;
     tlvTagInfo['tagNr'] = tagNr;
     tlvTagInfo['constructedDataObject'] = constructedDataObject;
@@ -604,7 +625,7 @@ function getTlvTag(meldung, tlvStart) {
         }
     }
 
-    // console.log('getTlvTag tag ' + tag + ' tagNr:' + tagNr + ' tagNumberInNextByte:' + tagNumberInNextByte + ' Bits: ' + tagNr.toString(2) + ' tlvTagInfo: ' + JSON.stringify(tlvTagInfo));
+//    console.log('getTlvTag tag ' + tag + ' tagNr:' + tagNr + ' Bits: ' + tagNr.toString(2) + ' tlvTagInfo: ' + JSON.stringify(tlvTagInfo));
 
     return tlvTagInfo;
 }
@@ -841,6 +862,32 @@ function getZvtBmpInfo(meldung, start) {
 
 function getZvtMessage(meldung) {
     meldung = meldung.toLowerCase().replace(/\s/g, '');
+
+    if (meldung.startsWith("1002")) {
+        let result = "";
+        // Remove "1002" from the beginning
+        meldung = meldung.slice(4);
+
+        // Cut off everything from the first occurrence of "1003" (including it)
+        const cutIndex = meldung.indexOf("1003");
+        if (cutIndex !== -1) {
+            meldung = meldung.slice(0, cutIndex);
+        }
+
+        // Replace "1010" with "10" at even positions
+        let i = 0;
+        while (i < meldung.length) {
+            if (i % 2 === 0 && meldung.slice(i, i + 4) === "1010") {
+                result += "10";
+                i += 4;
+            } else {
+                result += meldung[i];
+                i += 1;
+            }
+        }
+        meldung = result;
+    }
+
     console.info('getZvtMessage(' + meldung + ')');
     var istatusBez = {
         '02': { 'bez': 'Please watch PIN - Pad' },
